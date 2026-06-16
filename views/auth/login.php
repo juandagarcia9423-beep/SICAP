@@ -41,10 +41,17 @@
             align-items: center;
             border-left: 1px solid rgba(0,0,0,0.1);
             padding-left: 2rem;
+            perspective: 1000px;
         }
         .logo-login {
             max-width: 160px;
             margin-bottom: 0.8rem;
+            animation: rotateHorizontal3D 6s infinite ease-in-out;
+            transform-style: preserve-3d;
+        }
+        @keyframes rotateHorizontal3D {
+            0%, 20% { transform: rotateY(0deg); }
+            80%, 100% { transform: rotateY(360deg); }
         }
         h2 { margin: 0; color: #333; font-size: 1.6rem; }
         .login-form {
@@ -64,6 +71,20 @@
             box-sizing: border-box; 
             background: rgba(255, 255, 255, 0.9);
             font-size: 0.95rem;
+        }
+        .password-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            cursor: pointer;
+            color: #666;
+            z-index: 10;
+            user-select: none;
+            padding: 5px;
         }
         button { 
             width: 100%;
@@ -102,7 +123,10 @@
                     </div>
                     <div class="form-group">
                         <label for="password">Contraseña</label>
-                        <input type="password" name="password" id="password" required placeholder="Ingrese su contraseña">
+                        <div class="password-container">
+                            <input type="password" name="password" id="password" required placeholder="Ingrese su contraseña">
+                            <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                        </div>
                     </div>
                     <button type="submit">Entrar al Sistema</button>
                     
@@ -164,6 +188,38 @@
                 });
                 <?php unset($_SESSION['mensaje_error']); ?>
             <?php endif; ?>
+
+            // Toggle Password Visibility
+            const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#password');
+
+            if (togglePassword && password) {
+                const showPassword = () => {
+                    password.type = 'text';
+                    togglePassword.classList.remove('fa-eye');
+                    togglePassword.classList.add('fa-eye-slash');
+                };
+
+                const hidePassword = () => {
+                    password.type = 'password';
+                    togglePassword.classList.remove('fa-eye-slash');
+                    togglePassword.classList.add('fa-eye');
+                };
+
+                togglePassword.addEventListener('mousedown', showPassword);
+                togglePassword.addEventListener('mouseup', hidePassword);
+                togglePassword.addEventListener('mouseleave', hidePassword);
+                
+                // Soporte para móviles
+                togglePassword.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    showPassword();
+                });
+                togglePassword.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    hidePassword();
+                });
+            }
         });
     </script>
 </body>

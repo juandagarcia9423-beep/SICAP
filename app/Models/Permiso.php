@@ -137,11 +137,11 @@ class Permiso {
     // Crear nueva solicitud
     public function crearSolicitud($data) {
         $this->db->query("INSERT INTO solicitudes_permiso (
-            usuario_id, motivo_id, fecha_permiso, hora_permiso, horas_solicitadas, 
+            usuario_id, motivo_id, fecha_permiso, hora_permiso, horas_solicitadas, forma_pago, 
             regresa_laborar, firma_digital, requiere_reposicion, reposicion_fecha, 
             reposicion_hora, reposicion_observacion, soporte_nombre, estado
         ) VALUES (
-            :usuario_id, :motivo_id, :fecha_permiso, :hora_permiso, :horas_solicitadas, 
+            :usuario_id, :motivo_id, :fecha_permiso, :hora_permiso, :horas_solicitadas, :forma_pago, 
             :regresa_laborar, :firma_digital, :requiere_reposicion, :reposicion_fecha, 
             :reposicion_hora, :reposicion_observacion, :soporte_nombre, 'pendiente'
         )");
@@ -151,6 +151,7 @@ class Permiso {
         $this->db->bind(':fecha_permiso', $data['fecha_permiso']);
         $this->db->bind(':hora_permiso', $data['hora_permiso']);
         $this->db->bind(':horas_solicitadas', $data['horas_solicitadas']);
+        $this->db->bind(':forma_pago', $data['forma_pago']);
         $this->db->bind(':regresa_laborar', $data['regresa_laborar']);
         $this->db->bind(':firma_digital', $data['firma_digital']);
         $this->db->bind(':requiere_reposicion', $data['requiere_reposicion']);
@@ -196,9 +197,26 @@ class Permiso {
         return $this->db->execute();
     }
 
+    // Obtener un motivo específico por ID
+    public function obtenerMotivoPorId($id) {
+        $this->db->query("SELECT * FROM motivos_permiso WHERE id = :id");
+        $this->db->bind(':id', $id);
+        return $this->db->single();
+    }
+
     // Obtener una solicitud por ID
     public function obtenerPorId($id) {
         $this->db->query("SELECT * FROM solicitudes_permiso WHERE id = :id");
+        $this->db->bind(':id', $id);
+        return $this->db->single();
+    }
+
+    public function obtenerDetalleCompleto($id) {
+        $this->db->query("SELECT p.*, u.nombre as empleado_nombre, m.nombre as motivo_nombre 
+                          FROM solicitudes_permiso p 
+                          JOIN usuarios u ON p.usuario_id = u.id 
+                          JOIN motivos_permiso m ON p.motivo_id = m.id 
+                          WHERE p.id = :id");
         $this->db->bind(':id', $id);
         return $this->db->single();
     }

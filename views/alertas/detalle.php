@@ -57,6 +57,14 @@ require_once '../views/layouts/header.php';
                     <td style="max-width: 300px;"><?php echo $a->descripcion; ?></td>
                     <td><?php echo (new DateTime($a->fecha_alerta))->format('d/m/Y h:i:s A'); ?></td>
                     <td style="display: flex; gap: 0.5rem; justify-content: center;">
+                        <?php if ($a->tipo_alerta == 'Tardanza en Salir' && app\Helpers\SesionHelper::tienePermiso('horarios', 'editar')): ?>
+                            <button type="button" class="btn btn-success" style="padding: 0.4rem 0.6rem; font-size: 0.9rem;" 
+                                onclick="abrirModalBanco('<?php echo $a->id; ?>', '<?php echo $a->usuario_id; ?>', '<?php echo $a->usuario_nombre; ?>', '<?php echo $a->descripcion; ?>')"
+                                title="Aprobar para Banco de Horas">
+                                <i class="fas fa-university"></i>
+                            </button>
+                        <?php endif; ?>
+
                         <?php if (app\Helpers\SesionHelper::tienePermiso('alertas', 'editar')): ?>
                             <a href="<?php echo URLROOT; ?>/alertas/toggle/<?php echo $a->id; ?>?tipo=<?php echo urlencode($data['filtros']['tipo']); ?>&page=<?php echo $data['currentPage']; ?>" 
                             class="btn" 
@@ -163,7 +171,131 @@ require_once '../views/layouts/header.php';
         document.getElementById('ids-input').value = seleccionados.join(',');
         document.getElementById('form-eliminar-masivo').submit();
     }
+
+    function abrirModalBanco(alertaId, usuarioId, nombre, descripcion) {
+        console.log("Abriendo modal para:", nombre);
+        console.log("Descripción original:", descripcion);
+
+        document.getElementById('banco-alerta-id').value = alertaId;
+        document.getElementById('banco-usuario-id').value = usuarioId;
+        document.getElementById('banco-nombre').innerText = nombre;
+        document.getElementById('banco-descripcion').innerText = descripcion;
+        
+        const inputHoras = document.getElementById('banco-input-horas');
+        try {
+            // Regex ajustada para capturar el formato: "07:29 PM" y "04:00 PM"
+            // Ejemplo: "registró su SALIDA tarde a las 07:29 PM (su horario de salida era a las 04:00 PM)"
+            const regex = /a las (\d{1,2}:\d{2} [APM]{2}) \(su horario de salida era a las (\d{1,2}:\d{2} [APM]{2})\)/i;
+            const match = descripcion.match(regex);
+            
+            if (match) {
+                console.log("Horas capturadas:", match[1], "y", match[2]);
+                const horaMarcada = parseTimeRobust(match[1]);
+                const horaProgramada = parseTimeRobust(match[2]);
+                
+                if (horaMarcada && horaProgramada) {
+                    let diffMs = horaMarcada - horaProgramada;
+                    console.log("Diferencia en milisegundos:", diffMs);
+                    
+                    // Si el resultado es negativo, podría ser un turno que cruza la medianoche
+                    if (diffMs < 0) {
+                        diffMs += 24 * 60 * 60 * 1000;
+                        console.log("Ajuste por medianoche aplicado.");
+                    }
+                    
+                    const diffHoras = diffMs / (1000 * 60 * 60);
+                    inputHoras.value = diffHoras.toFixed(2);
+                    console.log("Horas calculadas:", inputHoras.value);
+                } else {
+                    inputHoras.value = "";
+                }
+            } else {
+                console.log("No se encontraron horas en la descripción con el regex.");
+                inputHoras.value = "";
+            }
+        } catch (e) {
+            console.error("Error crítico calculando horas:", e);
+            inputHoras.value = "";
+        }
+
+        document.getElementById('modal-banco').style.display = 'flex';
+    }
+
+    function parseTimeRobust(timeStr) {
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*([APM]{2})/i);
+        if (!match) return null;
+        
+        let hours = parseInt(match[1], 10);
+        const minutes = parseInt(match[2], 10);
+        const modifier = match[3].toUpperCase();
+        
+        if (modifier === 'PM' && hours < 12) hours += 12;
+        if (modifier === 'AM' && hours === 12) hours = 0;
+        
+        const d = new Date();
+        d.setHours(hours, minutes, 0, 0);
+        return d;
+    }
+
+    function cerrarModalBanco() {
+        document.getElementById('modal-banco').style.display = 'none';
+    }
 </script>
+
+<!-- Modal Banco de Horas -->
+<div id="modal-banco" class="modal-overlay" style="z-index: 9999;">
+    <div class="modal-content" style="max-width: 500px; text-align: left;">
+        <div class="modal-title" style="border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem;">
+            <i class="fas fa-university" style="color: var(--success-color);"></i> Aprobar para Banco de Horas
+        </div>
+        
+        <div class="modal-body">
+            <p style="margin-bottom: 0.5rem;"><strong>Empleado:</strong> <span id="banco-nombre"></span></p>
+            <p style="margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; line-height: 1.4;">
+                <strong>Detalle:</strong> <br>
+                <span id="banco-descripcion"></span>
+            </p>
+
+            <form id="form-banco" action="<?php echo URLROOT; ?>/bancohoras/aprobar_desde_alerta" method="POST">
+                <input type="hidden" name="alerta_id" id="banco-alerta-id">
+                <input type="hidden" name="usuario_id" id="banco-usuario-id">
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem;">Tipo de Movimiento:</label>
+                    <select name="tipo_movimiento" style="width: 100%; padding: 0.8rem; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 1rem; background: #fff !important; display: block !important; box-sizing: border-box;">
+                        <option value="credito">Abonar Horas (+)</option>
+                        <option value="debito">Descontar Horas (-)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem;">Horas:</label>
+                        <input type="number" name="horas" id="banco-input-horas" step="1" min="0" required 
+                            style="width: 100%; padding: 0.8rem; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 1.2rem; font-weight: bold; color: #1e3a8a; background: #fff !important; display: block !important; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem;">Minutos:</label>
+                        <input type="number" name="minutos" id="banco-input-minutos" step="1" min="0" max="59" required 
+                            style="width: 100%; padding: 0.8rem; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 1.2rem; font-weight: bold; color: #1e3a8a; background: #fff !important; display: block !important; box-sizing: border-box;">
+                    </div>
+                </div>
+                <small style="color: #64748b; display: block; margin-top: -1rem; margin-bottom: 1.5rem;">Puede modificar el valor sugerido si lo desea.</small>
+
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem;">Concepto / Observación:</label>
+                    <input type="text" name="concepto" value="Horas extras compensatorias" 
+                        style="width: 100%; padding: 0.8rem; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 1rem; background: #fff !important; display: block !important;">
+                </div>
+
+                <div class="modal-footer" style="padding-top: 1rem; border-top: 1px solid #eee; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalBanco()">Cancelar</button>
+                    <button type="submit" class="btn btn-success" style="padding: 0.8rem 2rem;">Confirmar y Sumar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- Modal Eliminar Masivo -->
 <div id="modal-eliminar-masivo" class="modal-overlay">

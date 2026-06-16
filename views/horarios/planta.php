@@ -42,7 +42,7 @@ $turnosPlanta = ['Turno 1', 'Turno 2', 'Turno 3'];
                         <small>Salida:</small>
                         <input type="time" name="config[<?php echo $k; ?>][<?php echo $tn; ?>][hora_salida]" class="form-control" value="<?php echo $conf ? $conf->hora_salida : ''; ?>"><br>
                         <small>Horas:</small>
-                        <input type="number" step="0.5" name="config[<?php echo $k; ?>][<?php echo $tn; ?>][horas]" class="form-control" value="<?php echo $conf ? $conf->horas_ordinarias : 8; ?>">
+                        <input type="number" step="any" name="config[<?php echo $k; ?>][<?php echo $tn; ?>][horas]" class="form-control" value="<?php echo $conf ? $conf->horas_ordinarias : 8; ?>">
                     </div>
                     <?php endforeach; ?>
                 </div>

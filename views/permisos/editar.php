@@ -42,15 +42,32 @@ $s = $data['solicitud'];
                     <input type="time" name="hora_permiso" required value="<?php echo $s->hora_permiso; ?>">
                 </div>
                 <div class="input-group">
-                    <label>Horas Solicitadas *</label>
-                    <input type="number" name="horas_solicitadas" step="0.5" min="0.5" required placeholder="Ej: 2.5" value="<?php echo $s->horas_solicitadas; ?>">
+                    <label>Tiempo Solicitado *</label>
+                    <div style="display: flex; gap: 10px;">
+                        <?php 
+                            $hsEnt = floor($s->horas_solicitadas);
+                            $msEnt = round(($s->horas_solicitadas - $hsEnt) * 60);
+                        ?>
+                        <input type="number" name="horas" step="1" min="0" value="<?php echo $hsEnt; ?>" placeholder="Horas" style="flex: 1;">
+                        <input type="number" name="minutos" step="1" min="0" max="59" value="<?php echo $msEnt; ?>" placeholder="Minutos" style="flex: 1;">
+                    </div>
+                </div>
+                <div class="input-group" id="container-forma-pago" style="display: <?php echo $data['motive_config']->permite_forma_pago ? 'block' : 'none'; ?>;">
+                    <label>Forma de Pago del Tiempo *</label>
+                    <select name="forma_pago" id="select-forma-pago">
+                        <option value="banco_horas" <?php echo $s->forma_pago == 'banco_horas' ? 'selected' : ''; ?>>Usar Banco de Horas (Saldo a favor)</option>
+                        <option value="reposicion" <?php echo $s->forma_pago == 'reposicion' ? 'selected' : ''; ?>>Reposición Posterior (Deuda)</option>
+                    </select>
                 </div>
                 <div class="input-group">
                     <label>Motivo del Permiso *</label>
                     <select name="motivo_id" id="select-motivo" required>
                         <option value="">-- Seleccionar --</option>
                         <?php foreach($data['motivos'] as $m): ?>
-                            <option value="<?php echo $m->id; ?>" data-repone="<?php echo $m->repone_tiempo; ?>" <?php echo $m->id == $s->motivo_id ? 'selected' : ''; ?>>
+                            <option value="<?php echo $m->id; ?>" 
+                                    data-repone="<?php echo $m->repone_tiempo; ?>" 
+                                    data-pago="<?php echo isset($m->permite_forma_pago) ? $m->permite_forma_pago : 0; ?>"
+                                    <?php echo $m->id == $s->motivo_id ? 'selected' : ''; ?>>
                                 <?php echo $m->nombre; ?>
                             </option>
                         <?php endforeach; ?>
@@ -121,6 +138,7 @@ $s = $data['solicitud'];
         selectMotivo.addEventListener('change', function() {
             const option = this.options[this.selectedIndex];
             const repone = option.getAttribute('data-repone') == "1";
+            const permitePago = option.getAttribute('data-pago') == "1";
             
             if (repone) {
                 seccionReposicion.style.display = 'block';
@@ -132,6 +150,17 @@ $s = $data['solicitud'];
                 inputRequiereRep.value = "0";
                 repFecha.required = false;
                 repHora.required = false;
+            }
+
+            // Lógica para Forma de Pago
+            const containerPago = document.getElementById('container-forma-pago');
+            const selectPago = document.getElementById('select-forma-pago');
+            if (permitePago) {
+                containerPago.style.display = 'block';
+                selectPago.required = true;
+            } else {
+                containerPago.style.display = 'none';
+                selectPago.required = false;
             }
         });
 

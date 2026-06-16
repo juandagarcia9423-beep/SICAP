@@ -42,28 +42,48 @@ class Alerta {
         return $this->db->fetchColumn();
     }
 
-    public function alertaYaExiste($usuario_id, $tipo, $fecha) {
+    /**
+     * Verifica si una alerta YA existe en la tabla activa O si fue previamente eliminada (descartada)
+     */
+    public function alertaYaExiste($usuario_id, $tipo, $identificador_evento) {
+        // 1. Verificar si ya está activa
         $this->db->query("SELECT id FROM alertas 
                           WHERE usuario_id = :usuario_id 
                           AND tipo_alerta = :tipo 
-                          AND DATE(fecha_alerta) = :fecha");
+                          AND identificador_evento = :identificador");
         $this->db->bind(':usuario_id', $usuario_id);
         $this->db->bind(':tipo', $tipo);
-        $this->db->bind(':fecha', $fecha);
+        $this->db->bind(':identificador', $identificador_evento);
+        if ($this->db->single()) return true;
+
+        // 2. Verificar si fue descartada permanentemente
+        $this->db->query("SELECT id FROM eventos_descartados 
+                          WHERE usuario_id = :usuario_id 
+                          AND tipo_alerta = :tipo 
+                          AND identificador_evento = :identificador");
+        $this->db->bind(':usuario_id', $usuario_id);
+        $this->db->bind(':tipo', $tipo);
+        $this->db->bind(':identificador', $identificador_evento);
         return $this->db->single() !== false;
     }
 
-    public function registrarAlerta($usuario_id, $tipo, $descripcion) {
-        // Solo registrar si no existe una alerta del mismo tipo hoy
-        $fechaHoy = date('Y-m-d');
-        if ($this->alertaYaExiste($usuario_id, $tipo, $fechaHoy)) {
+    public function registrarAlerta($usuario_id, $tipo, $descripcion, $identificador_evento, $fechaCustom = null) {
+        // Doble verificación de seguridad
+        if ($this->alertaYaExiste($usuario_id, $tipo, $identificador_evento)) {
             return false;
         }
 
-        $this->db->query("INSERT INTO alertas (usuario_id, tipo_alerta, descripcion) VALUES (:usuario_id, :tipo_alerta, :descripcion)");
+        $sql = "INSERT INTO alertas (usuario_id, tipo_alerta, descripcion, identificador_evento" . ($fechaCustom ? ", fecha_alerta" : "") . ") 
+                VALUES (:usuario_id, :tipo_alerta, :descripcion, :identificador" . ($fechaCustom ? ", :fecha" : "") . ")";
+        
+        $this->db->query($sql);
         $this->db->bind(':usuario_id', $usuario_id);
         $this->db->bind(':tipo_alerta', $tipo);
         $this->db->bind(':descripcion', $descripcion);
+        $this->db->bind(':identificador', $identificador_evento);
+        if ($fechaCustom) {
+            $this->db->bind(':fecha', $fechaCustom);
+        }
         return $this->db->execute();
     }
 
@@ -73,6 +93,20 @@ class Alerta {
     }
 
     public function eliminarAlerta($id) {
+        // Antes de eliminar, guardamos en descartados para que no se recree
+        $this->db->query("SELECT usuario_id, tipo_alerta, identificador_evento FROM alertas WHERE id = :id");
+        $this->db->bind(':id', $id);
+        $alerta = $this->db->single();
+
+        if ($alerta) {
+            $this->db->query("INSERT IGNORE INTO eventos_descartados (usuario_id, tipo_alerta, identificador_evento) 
+                              VALUES (:usuario_id, :tipo, :identificador)");
+            $this->db->bind(':usuario_id', $alerta->usuario_id);
+            $this->db->bind(':tipo', $alerta->tipo_alerta);
+            $this->db->bind(':identificador', $alerta->identificador_evento);
+            $this->db->execute();
+        }
+
         $this->db->query("DELETE FROM alertas WHERE id = :id");
         $this->db->bind(':id', $id);
         return $this->db->execute();

@@ -131,6 +131,7 @@ require_once '../views/layouts/header.php';
                         <th class="col-nombre">Nombre del Motivo</th>
                         <th class="col-desc">Descripción</th>
                         <th class="col-repone" style="text-align: center;">Repone Tiempo</th>
+                        <th class="col-repone" style="text-align: center;">Forma Pago</th>
                         <th class="col-acciones" style="text-align: center;">Acciones</th>
                     </tr>
                 </thead>
@@ -150,9 +151,20 @@ require_once '../views/layouts/header.php';
                                 </span>
                             <?php endif; ?>
                         </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <?php if(isset($m->permite_forma_pago) && $m->permite_forma_pago): ?>
+                                <span class="role-badge" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: #8b5cf6 !important; color: white !important;">
+                                    <i class="fas fa-money-bill-wave" style="font-size: 10px;"></i> ACTIVO
+                                </span>
+                            <?php else: ?>
+                                <span class="role-badge" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: #94a3b8 !important; color: white !important;">
+                                    <i class="fas fa-times-circle" style="font-size: 10px;"></i> INACTIVO
+                                </span>
+                            <?php endif; ?>
+                        </td>
                         <td style="text-align: center;">
                             <div style="display: flex; justify-content: center; gap: 8px;">
-                                <button class="btn btn-primary btn-action-sm" onclick='editarMotivo(<?php echo json_encode($m); ?>)' title="Editar">
+                                <button class="btn btn-primary btn-action-sm btn-editar-motivo" data-motivo="<?php echo base64_encode(json_encode($m)); ?>" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="btn btn-danger btn-action-sm btn-eliminar-motivo" data-id="<?php echo $m->id; ?>" data-nombre="<?php echo $m->nombre; ?>" title="Eliminar">
@@ -197,6 +209,17 @@ require_once '../views/layouts/header.php';
                         <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--primary-color);">
                             <input type="checkbox" name="visible_para_usuarios" id="motivo-visible" value="1" checked style="width:16px; height:16px; accent-color: var(--primary-color);">
                             Activo para solicitar
+                        </label>
+                    </div>
+
+                    <div class="options-box" style="background: #f5f3ff; border-color: #8b5cf6; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #6d28d9;">
+                            <input type="checkbox" name="permite_forma_pago" id="motivo-pago" value="1" style="width:16px; height:16px; accent-color: #8b5cf6;">
+                            ¿Habilitar selector de forma de pago?
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #047857;">
+                            <input type="checkbox" name="es_credito" id="motivo-es-credito" value="1" style="width:16px; height:16px; accent-color: #10b981;">
+                            Genera horas a favor (+) (Suma al Banco de Horas)
                         </label>
                     </div>
                 </div>
@@ -268,6 +291,17 @@ require_once '../views/layouts/header.php';
 
 <script>
 $(document).ready(function() {
+    $(document).on('click', '.btn-editar-motivo', function() {
+        try {
+            const motivoB64 = $(this).attr('data-motivo');
+            const motivo = JSON.parse(window.atob(motivoB64));
+            editarMotivo(motivo);
+        } catch(e) {
+            console.error("Error cargando motivo:", e);
+            alert("No se pudo cargar la información del motivo. Verifique la consola.");
+        }
+    });
+
     // Lógica de eliminación con Modal Personalizado
     $(document).on('click', '.btn-eliminar-motivo', function() {
         const id = $(this).data('id');
@@ -313,6 +347,8 @@ function nuevoMotivo() {
     document.getElementById('motivo-descripcion').value = "";
     document.getElementById('motivo-repone').checked = false;
     document.getElementById('motivo-visible').checked = true;
+    document.getElementById('motivo-pago').checked = false;
+    document.getElementById('motivo-es-credito').checked = false;
     
     // Desmarcar todos los checkboxes
     $('.chk-area').prop('checked', false);
@@ -330,6 +366,8 @@ function editarMotivo(motivo) {
     document.getElementById('motivo-descripcion').value = motivo.descripcion;
     document.getElementById('motivo-repone').checked = motivo.repone_tiempo == 1;
     document.getElementById('motivo-visible').checked = motivo.visible_para_usuarios == 1;
+    document.getElementById('motivo-pago').checked = motivo.permite_forma_pago == 1;
+    document.getElementById('motivo-es-credito').checked = motivo.es_credito == 1;
     
     // Limpiar checkboxes
     $('.chk-area').prop('checked', false);
@@ -356,7 +394,7 @@ function editarMotivo(motivo) {
     // Actualizar estados de "Seleccionar todo"
     $('#chk-all-areas').prop('checked', areas.length > 0 && areas.length === $('.chk-area').length);
     $('#chk-all-usuarios').prop('checked', usuarios.length > 0 && usuarios.length === $('.chk-usuario').length);
-    
+
     document.getElementById('modal-motivo').style.display = 'flex';
 }
 

@@ -33,22 +33,6 @@ class AsistenciaController extends Controller {
         $alertaModel = $this->model('Alerta');
         
         // --- Validación de Horarios y Novedades ---
-        
-        // 1. Detectar permisos aprobados hoy y registrar alertas
-        $db = new \app\Core\Database();
-        $db->query("SELECT p.*, u.nombre 
-                    FROM solicitudes_permiso p 
-                    JOIN usuarios u ON p.usuario_id = u.id 
-                    WHERE p.estado = 'aprobada' AND DATE(p.fecha_permiso) = CURDATE()");
-        $permisosHoy = $db->resultSet();
-        
-        foreach ($permisosHoy as $p) {
-            $alertaModel->registrarAlerta(
-                $p->usuario_id, 
-                'Permiso Laboral', 
-                "El empleado {$p->nombre} tiene un permiso aprobado para hoy: {$p->reposicion_observacion}"
-            );
-        }
 
         foreach ($marcaciones as &$m) {
             $raw_timestamp = $m->registrado_en; 
@@ -85,18 +69,15 @@ class AsistenciaController extends Controller {
                 if ($m->tipo == 'entrada') {
                     if ($hora_str > $horario->hora_entrada && !$tienePermiso) {
                         $m->estado_marcacion = 'Tarde';
-                        $alertaModel->registrarAlerta($m->usuario_id, 'Llegada Tarde', "El empleado {$m->nombre} llegó tarde el día {$fecha_format}");
                     }
                 } elseif ($m->tipo == 'salida') {
                     // Si sale antes de tiempo
                     if ($hora_str < $horario->hora_salida && !$tienePermiso) {
                         $m->estado_marcacion = 'Antes de Tiempo';
-                        $alertaModel->registrarAlerta($m->usuario_id, 'Salida Anticipada', "El empleado {$m->nombre} salió antes de tiempo el día {$fecha_format}");
                     }
                     // Si sale más de 10 minutos después
                     elseif ($hora_marcacion > ($hora_salida + $tolerancia) && !$tienePermiso) {
                         $m->estado_marcacion = 'Tardanza en Salir';
-                        $alertaModel->registrarAlerta($m->usuario_id, 'Tardanza en Salir', "El empleado {$m->nombre} salió tarde el día {$fecha_format}");
                     }
                 }
             }

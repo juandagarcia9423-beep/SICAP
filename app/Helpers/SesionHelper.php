@@ -23,6 +23,9 @@ class SesionHelper {
             header('location: ' . URLROOT . '/auth/login');
             exit();
         }
+
+        // Ejecutar tareas automáticas (inasistencias, alertas, etc)
+        AutomacionHelper::ejecutarTareas();
     }
 
     // Verificar si el usuario tiene un permiso específico

@@ -40,19 +40,28 @@ class DashboardController extends Controller {
             // 4. Alertas Activas (No leídas)
             $alertasActivas = $conn->query("SELECT COUNT(*) FROM alertas WHERE leido = FALSE")->fetchColumn();
 
+            // 5. Total Deuda Banco Horas (Global)
+            $totalDeuda = $conn->query("SELECT SUM(saldo_horas) FROM usuarios WHERE saldo_horas < 0")->fetchColumn();
+
             $stats = [
                 'total_usuarios' => $totalUsuarios,
                 'asistencia_hoy' => $porcentajeAsistencia . '%',
                 'permisos_pendientes' => $permisosPendientes,
-                'alertas_activas' => $alertasActivas
+                'alertas_activas' => $alertasActivas,
+                'total_deuda_horas' => abs($totalDeuda ?: 0)
             ];
         } else {
             $stats = null; // Indica que no se deben mostrar
         }
 
+        // Estadísticas para empleados
+        $bancoModel = $this->model('BancoHoras');
+        $saldo = $bancoModel->obtenerSaldo($_SESSION['usuario_id']);
+
         $data = [
             'titulo' => 'Dashboard Principal',
             'stats' => $stats,
+            'saldo' => $saldo,
             'puede_ver_stats' => ($stats !== null)
         ];
         $this->view('dashboard/index', $data);

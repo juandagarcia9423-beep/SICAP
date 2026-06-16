@@ -290,6 +290,10 @@
                 <?php if (app\Helpers\SesionHelper::tienePermiso('informes', 'ver')): ?>
                     <a href="<?php echo URLROOT; ?>/informes" class="menu-item submenu-item"><i class="fas fa-chart-bar"></i> <span>Informes</span></a>
                 <?php endif; ?>
+
+                <?php if (app\Helpers\SesionHelper::tienePermiso('usuarios', 'ver')): ?>
+                    <a href="<?php echo URLROOT; ?>/bancohoras" class="menu-item submenu-item"><i class="fas fa-university"></i> <span>Banco de Horas</span></a>
+                <?php endif; ?>
             </div>
 
             <?php if (app\Helpers\SesionHelper::tienePermiso('configuracion', 'ver')): ?>

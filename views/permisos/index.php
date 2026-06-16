@@ -190,6 +190,13 @@ function nombreMes($fecha) {
 </div>
 
 <script>
+    function formatHoras(decimalHoras) {
+        if (!decimalHoras) return '0h 00m';
+        const h = Math.floor(decimalHoras);
+        const m = Math.round((decimalHoras - h) * 60);
+        return `${h}h ${m.toString().padStart(2, '0')}m`;
+    }
+
     const URLROOT = "<?php echo URLROOT; ?>";
     const misSolicitudesRaw = <?php echo json_encode($data['mis_solicitudes']) ?: '{}'; ?>;
     const autorizacionesRaw = <?php echo json_encode($data['autorizaciones']) ?: '{}'; ?>;
@@ -491,10 +498,10 @@ function nombreMes($fecha) {
             </div>
             <div class="card-part" style="flex: 1.5;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                    <div><span class="label-small">Tiempo Solicitado</span><span class="value-med" style="display: block; color: var(--primary-color);">${s.horas_solicitadas} Horas</span></div>
+                    <div><span class="label-small">Tiempo Solicitado</span><span class="value-med" style="display: block; color: var(--primary-color);">${formatHoras(s.horas_solicitadas)}</span></div>
                     <div style="text-align: right;"><span class="label-small">Tiempo Usado</span><span class="value-med" style="display: block; color: #10b981;"><i class="fas fa-stopwatch"></i> 00:00:00</span></div>
                 </div>
-                <div style="margin-bottom: 0.5rem; text-align: center;"><span class="label-small">Tiempo de Deuda</span><span class="value-med" style="display: block; color: #ef4444;">${s.requiere_reposicion == 1 ? s.horas_solicitadas + ' hrs' : '0 hrs'}</span></div>
+                <div style="margin-bottom: 0.5rem; text-align: center;"><span class="label-small">Tiempo de Deuda</span><span class="value-med" style="display: block; color: #ef4444;">${s.requiere_reposicion == 1 ? formatHoras(s.horas_solicitadas) : '0h 00m'}</span></div>
                 <div style="text-align: center;"><span class="label-small">Programación</span><span class="value-med" style="display: block; font-size: 0.85rem;"><i class="far fa-calendar-alt"></i> ${formatDate(s.fecha_permiso)} <i class="far fa-clock" style="margin-left: 5px;"></i> ${formatTime(s.hora_permiso)}</span></div>
                 
                 <div style="text-align: center; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed #e2e8f0;">

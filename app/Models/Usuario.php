@@ -32,7 +32,7 @@ class Usuario {
 
     // Registrar nuevo usuario
     public function registrar($data) {
-        $this->db->query('INSERT INTO usuarios (nombre, usuario, cedula, email, password_hash, rol, area, tipo_jornada, permite_pin, permite_facial, permite_qr, pin_secreto, foto_facial, huella) VALUES (:nombre, :usuario, :cedula, :email, :password_hash, :rol, :area, :tipo_jornada, :permite_pin, :permite_facial, :permite_qr, :pin_secreto, :foto_facial, "")');
+        $this->db->query('INSERT INTO usuarios (nombre, usuario, cedula, email, password_hash, rol, area, tipo_jornada, tipo_personal, permite_pin, permite_facial, permite_qr, pin_secreto, foto_facial, huella) VALUES (:nombre, :usuario, :cedula, :email, :password_hash, :rol, :area, :tipo_jornada, :tipo_personal, :permite_pin, :permite_facial, :permite_qr, :pin_secreto, :foto_facial, "")');
         
         $this->db->bind(':nombre', $data['nombre']);
         $this->db->bind(':usuario', $data['usuario']);
@@ -42,6 +42,7 @@ class Usuario {
         $this->db->bind(':rol', $data['rol']);
         $this->db->bind(':area', $data['area']);
         $this->db->bind(':tipo_jornada', $data['tipo_jornada']);
+        $this->db->bind(':tipo_personal', $data['tipo_personal']);
         $this->db->bind(':permite_pin', $data['permite_pin'] ? 1 : 0);
         $this->db->bind(':permite_facial', $data['permite_facial'] ? 1 : 0);
         $this->db->bind(':permite_qr', $data['permite_qr'] ? 1 : 0);
@@ -60,7 +61,7 @@ class Usuario {
 
     // Actualizar usuario
     public function actualizar($data) {
-        $sql = 'UPDATE usuarios SET nombre = :nombre, usuario = :usuario, cedula = :cedula, email = :email, rol = :rol, area = :area, tipo_jornada = :tipo_jornada, permite_pin = :permite_pin, permite_facial = :permite_facial, permite_qr = :permite_qr, pin_secreto = :pin_secreto, foto_facial = :foto_facial';
+        $sql = 'UPDATE usuarios SET nombre = :nombre, usuario = :usuario, cedula = :cedula, email = :email, rol = :rol, area = :area, tipo_jornada = :tipo_jornada, tipo_personal = :tipo_personal, permite_pin = :permite_pin, permite_facial = :permite_facial, permite_qr = :permite_qr, pin_secreto = :pin_secreto, foto_facial = :foto_facial';
         
         if (!empty($data['password_hash'])) {
             $sql .= ', password_hash = :password_hash';
@@ -80,6 +81,7 @@ class Usuario {
         $this->db->bind(':rol', $data['rol']);
         $this->db->bind(':area', $data['area']);
         $this->db->bind(':tipo_jornada', $data['tipo_jornada']);
+        $this->db->bind(':tipo_personal', $data['tipo_personal']);
         $this->db->bind(':permite_pin', $data['permite_pin'] ? 1 : 0);
         $this->db->bind(':permite_facial', $data['permite_facial'] ? 1 : 0);
         $this->db->bind(':permite_qr', $data['permite_qr'] ? 1 : 0);
@@ -94,5 +96,17 @@ class Usuario {
         $this->db->query('DELETE FROM usuarios WHERE id = :id');
         $this->db->bind(':id', $id);
         return $this->db->execute();
+    }
+
+    public function obtenerUsuarios() {
+        $this->db->query("SELECT id, nombre, cedula, area FROM usuarios WHERE activo = 1 ORDER BY nombre ASC");
+        return $this->db->resultSet();
+    }
+
+    public function obtenerSaldo($id) {
+        $this->db->query("SELECT saldo_horas FROM usuarios WHERE id = :id");
+        $this->db->bind(':id', $id);
+        $row = $this->db->single();
+        return $row ? (float)$row->saldo_horas : 0.0;
     }
 }

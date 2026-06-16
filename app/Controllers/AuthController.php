@@ -181,6 +181,9 @@ class AuthController extends Controller {
             if ($asistenciaModel->registrarEvento($usuario_id, $tipo)) {
                 $fechaHora = date('d/m/Y h:i:s A');
                 $_SESSION['mensaje_exito'] = "Marcación de {$tipo} registrada con éxito.<br><br><small>{$fechaHora}</small>";
+                
+                // Forzar ejecución de automatización al instante para generar alertas si es necesario
+                \app\Helpers\AutomacionHelper::ejecutarTareasCron();
             } else {
                 $_SESSION['mensaje_error'] = "Error al registrar.";
             }

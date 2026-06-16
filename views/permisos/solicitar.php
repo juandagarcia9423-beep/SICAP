@@ -41,15 +41,27 @@ require_once '../views/layouts/header.php';
                     <input type="time" name="hora_permiso" required>
                 </div>
                 <div class="input-group">
-                    <label>Horas Solicitadas *</label>
-                    <input type="number" name="horas_solicitadas" step="0.5" min="0.5" required placeholder="Ej: 2.5">
+                    <label>Tiempo Solicitado *</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" name="horas" step="1" min="0" placeholder="Horas" style="flex: 1;">
+                        <input type="number" name="minutos" step="1" min="0" max="59" placeholder="Minutos" style="flex: 1;">
+                    </div>
+                </div>
+                <div class="input-group" id="container-forma-pago" style="display: none;">
+                    <label>Forma de Pago del Tiempo *</label>
+                    <select name="forma_pago" id="select-forma-pago">
+                        <option value="banco_horas">Usar Banco de Horas (Saldo a favor)</option>
+                        <option value="reposicion">Reposición Posterior (Deuda)</option>
+                    </select>
                 </div>
                 <div class="input-group">
                     <label>Motivo del Permiso *</label>
                     <select name="motivo_id" id="select-motivo" required>
                         <option value="">-- Seleccionar --</option>
                         <?php foreach($data['motivos'] as $m): ?>
-                            <option value="<?php echo $m->id; ?>" data-repone="<?php echo $m->repone_tiempo; ?>">
+                            <option value="<?php echo $m->id; ?>" 
+                                    data-repone="<?php echo $m->repone_tiempo; ?>" 
+                                    data-pago="<?php echo isset($m->permite_forma_pago) ? $m->permite_forma_pago : 0; ?>">
                                 <?php echo $m->nombre; ?>
                             </option>
                         <?php endforeach; ?>
@@ -117,7 +129,9 @@ require_once '../views/layouts/header.php';
         selectMotivo.addEventListener('change', function() {
             const option = this.options[this.selectedIndex];
             const repone = option.getAttribute('data-repone') == "1";
+            const permitePago = option.getAttribute('data-pago') == "1";
             
+            // Lógica para Reposición
             if (repone) {
                 seccionReposicion.style.display = 'block';
                 inputRequiereRep.value = "1";
@@ -128,6 +142,17 @@ require_once '../views/layouts/header.php';
                 inputRequiereRep.value = "0";
                 repFecha.required = false;
                 repHora.required = false;
+            }
+
+            // Lógica para Forma de Pago
+            const containerPago = document.getElementById('container-forma-pago');
+            const selectPago = document.getElementById('select-forma-pago');
+            if (permitePago) {
+                containerPago.style.display = 'block';
+                selectPago.required = true;
+            } else {
+                containerPago.style.display = 'none';
+                selectPago.required = false;
             }
         });
 

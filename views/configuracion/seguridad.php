@@ -155,6 +155,14 @@ require_once '../views/layouts/header.php';
                                     <?php else: ?>
                                         <i class="fas fa-lock" style="color: #e2e8f0; font-size: 10px;"></i>
                                     <?php endif; ?>
+                                <?php elseif ($modulo == 'bancohoras'): ?>
+                                    <?php if ($yoTengoAccesso('bancohoras', 'ver_propio')): ?>
+                                        <label title="Ver Propio Saldo" style="font-size: 10px; display: flex; align-items: center; gap: 3px; cursor: pointer;">
+                                            <input type="checkbox" class="permiso-checkbox" data-modulo="bancohoras" data-accion="ver_propio"> Propio
+                                        </label>
+                                    <?php else: ?>
+                                        <i class="fas fa-lock" style="color: #e2e8f0; font-size: 10px;"></i>
+                                    <?php endif; ?>
                                 <?php elseif ($modulo == 'configuracion'): ?>
                                     <div style="display: flex; flex-direction: column; gap: 4px; align-items: center; padding: 4px;">
                                         <?php if ($yoTengoAccesso('configuracion', 'seguridad')): ?>

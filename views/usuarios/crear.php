@@ -179,6 +179,17 @@
                     </div>
                 </div>
 
+                <div class="input-group">
+                    <label>Tipo de Personal (Horario)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-clock"></i>
+                        <select name="tipo_personal" required>
+                            <option value="planta">Personal de Planta</option>
+                            <option value="administrativo">Personal Administrativo</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="section-title" style="margin-top: 0.5rem;"><i class="fas fa-lock"></i> Métodos de Acceso</div>
 
                 <div class="input-group" style="grid-column: span 3; display: flex; gap: 1rem; align-items: center;">

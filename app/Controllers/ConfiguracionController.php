@@ -87,7 +87,7 @@ class ConfiguracionController extends Controller {
         $data = [
             'titulo' => 'Seguridad y Permisos por Usuario',
             'usuarios' => $this->getUsuariosLista(),
-            'modulos' => ['dashboard', 'usuarios', 'asistencia', 'permisos', 'horarios', 'alertas', 'informes', 'configuracion'],
+            'modulos' => ['dashboard', 'usuarios', 'asistencia', 'permisos', 'horarios', 'alertas', 'informes', 'bancohoras', 'configuracion'],
             'acciones' => ['ver', 'crear', 'editar', 'eliminar', 'configurar', 'ver_estadisticas'],
             'areas_todas' => $areas,
             'authConfig' => $authConfig,
@@ -193,6 +193,8 @@ class ConfiguracionController extends Controller {
                 'nombre' => trim($_POST['nombre']),
                 'descripcion' => trim($_POST['descripcion']),
                 'repone_tiempo' => isset($_POST['repone_tiempo']) ? 1 : 0,
+                'permite_forma_pago' => isset($_POST['permite_forma_pago']) ? 1 : 0,
+                'es_credito' => isset($_POST['es_credito']) ? 1 : 0,
                 'visible_para_usuarios' => isset($_POST['visible_para_usuarios']) ? 1 : 0,
                 'areas_permitidas' => $areas,
                 'usuarios_permitidos' => $usuarios
@@ -200,11 +202,11 @@ class ConfiguracionController extends Controller {
 
             $conn = new \PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME, DB_USER, DB_PASS);
             if ($id) {
-                $stmt = $conn->prepare("UPDATE motivos_permiso SET nombre = :nombre, descripcion = :descripcion, repone_tiempo = :repone_tiempo, visible_para_usuarios = :visible_para_usuarios, areas_permitidas = :areas_permitidas, usuarios_permitidos = :usuarios_permitidos WHERE id = :id");
+                $stmt = $conn->prepare("UPDATE motivos_permiso SET nombre = :nombre, descripcion = :descripcion, repone_tiempo = :repone_tiempo, permite_forma_pago = :permite_forma_pago, es_credito = :es_credito, visible_para_usuarios = :visible_para_usuarios, areas_permitidas = :areas_permitidas, usuarios_permitidos = :usuarios_permitidos WHERE id = :id");
                 $stmt->execute($data);
                 $_SESSION['mensaje_exito'] = "Motivo actualizado correctamente.";
             } else {
-                $stmt = $conn->prepare("INSERT INTO motivos_permiso (nombre, descripcion, repone_tiempo, visible_para_usuarios, areas_permitidas, usuarios_permitidos) VALUES (:nombre, :descripcion, :repone_tiempo, :visible_para_usuarios, :areas_permitidas, :usuarios_permitidos)");
+                $stmt = $conn->prepare("INSERT INTO motivos_permiso (nombre, descripcion, repone_tiempo, permite_forma_pago, es_credito, visible_para_usuarios, areas_permitidas, usuarios_permitidos) VALUES (:nombre, :descripcion, :repone_tiempo, :permite_forma_pago, :es_credito, :visible_para_usuarios, :areas_permitidas, :usuarios_permitidos)");
                 unset($data['id']);
                 $stmt->execute($data);
                 $_SESSION['mensaje_exito'] = "Nuevo motivo de permiso creado.";

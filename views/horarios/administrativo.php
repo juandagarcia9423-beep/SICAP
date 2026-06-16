@@ -33,7 +33,7 @@ $dias = [1=>'Lunes', 2=>'Martes', 3=>'Miércoles', 4=>'Jueves', 5=>'Viernes', 6=
                     <small>Salida:</small>
                     <input type="time" name="config[<?php echo $k; ?>][Administrativo][hora_salida]" class="form-control" value="<?php echo $conf ? $conf->hora_salida : ''; ?>"><br>
                     <small>Horas:</small>
-                    <input type="number" step="0.5" name="config[<?php echo $k; ?>][Administrativo][horas]" class="form-control" value="<?php echo $conf ? $conf->horas_ordinarias : 8; ?>">
+                    <input type="number" step="any" name="config[<?php echo $k; ?>][Administrativo][horas]" class="form-control" value="<?php echo $conf ? $conf->horas_ordinarias : 8; ?>">
                 </div>
                 <?php endforeach; ?>
             </div>
