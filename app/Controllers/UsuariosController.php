@@ -13,6 +13,12 @@ class UsuariosController extends Controller {
     }
 
     public function index() {
+        if (!SesionHelper::tienePermiso('usuarios', 'ver')) {
+            $_SESSION['mensaje_error'] = "No tiene permiso para ver este módulo.";
+            header('location: ' . URLROOT . '/dashboard');
+            exit();
+        }
+
         $data = [
             'titulo' => 'Gestión de Usuarios',
             'usuarios' => $this->getUsersFromDB()
@@ -21,6 +27,12 @@ class UsuariosController extends Controller {
     }
 
     public function crear() {
+        if (!SesionHelper::tienePermiso('usuarios', 'crear')) {
+            $_SESSION['mensaje_error'] = "No tiene permiso para crear usuarios.";
+            header('location: ' . URLROOT . '/usuarios/index');
+            exit();
+        }
+
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = [
                 'nombre' => trim($_POST['nombre']),
@@ -31,6 +43,11 @@ class UsuariosController extends Controller {
                 'rol' => trim($_POST['rol']),
                 'area' => trim($_POST['area']),
                 'tipo_jornada' => trim($_POST['tipo_jornada']),
+                'permite_pin' => isset($_POST['permite_pin']) ? 1 : 0,
+                'permite_facial' => isset($_POST['permite_facial']) ? 1 : 0,
+                'permite_qr' => isset($_POST['permite_qr']) ? 1 : 0,
+                'pin_secreto' => trim($_POST['pin_secreto']),
+                'foto_facial' => $_POST['foto_facial'] ?? null,
                 'error' => ''
             ];
 
@@ -59,6 +76,12 @@ class UsuariosController extends Controller {
     }
 
     public function editar($id) {
+        if (!SesionHelper::tienePermiso('usuarios', 'editar')) {
+            $_SESSION['mensaje_error'] = "No tiene permiso para editar usuarios.";
+            header('location: ' . URLROOT . '/usuarios/index');
+            exit();
+        }
+
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = [
                 'id' => $id,
@@ -69,6 +92,11 @@ class UsuariosController extends Controller {
                 'rol' => trim($_POST['rol']),
                 'area' => trim($_POST['area']),
                 'tipo_jornada' => trim($_POST['tipo_jornada']),
+                'permite_pin' => isset($_POST['permite_pin']) ? 1 : 0,
+                'permite_facial' => isset($_POST['permite_facial']) ? 1 : 0,
+                'permite_qr' => isset($_POST['permite_qr']) ? 1 : 0,
+                'pin_secreto' => trim($_POST['pin_secreto']),
+                'foto_facial' => $_POST['foto_facial'] ?? null,
                 'password_hash' => !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : '',
                 'error' => ''
             ];
@@ -97,6 +125,12 @@ class UsuariosController extends Controller {
     }
 
     public function eliminar($id) {
+        if (!SesionHelper::tienePermiso('usuarios', 'eliminar')) {
+            $_SESSION['mensaje_error'] = "No tiene permiso para eliminar usuarios.";
+            header('location: ' . URLROOT . '/usuarios/index');
+            exit();
+        }
+
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($this->usuarioModel->eliminar($id)) {
                 $_SESSION['mensaje_exito'] = 'El usuario ha sido eliminado.';

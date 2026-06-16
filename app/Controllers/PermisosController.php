@@ -16,7 +16,7 @@ class PermisosController extends Controller {
         $usuario_id = $_SESSION['usuario_id'];
         
         $mis_solicitudes_raw = $this->permisoModel->obtenerMisSolicitudes($usuario_id);
-        $autorizaciones_raw = $this->permisoModel->obtenerTodasParaAutorizar();
+        $autorizaciones_raw = $this->permisoModel->obtenerTodasParaAutorizar($usuario_id);
 
         $data = [
             'titulo' => 'Gestión de Permisos Laborales',
@@ -84,7 +84,7 @@ class PermisosController extends Controller {
         } else {
             $data = [
                 'titulo' => 'Nueva Solicitud de Permiso',
-                'motivos' => $this->permisoModel->obtenerMotivos(),
+                'motivos' => $this->permisoModel->obtenerMotivosParaUsuario($_SESSION['usuario_id']),
                 'fecha_minima' => date('Y-m-d', strtotime('+1 day'))
             ];
             $this->view('permisos/solicitar', $data);
@@ -94,8 +94,18 @@ class PermisosController extends Controller {
     public function editar($id) {
         $solicitud = $this->permisoModel->obtenerPorId($id);
 
-        // Verificar que la solicitud existe y pertenece al usuario, y que está en estado pendiente
-        if (!$solicitud || $solicitud->usuario_id != $_SESSION['usuario_id'] || $solicitud->estado != 'pendiente') {
+        // Verificar que la solicitud existe y está en estado pendiente
+        if (!$solicitud || $solicitud->estado != 'pendiente') {
+            header('location: ' . URLROOT . '/permisos/index');
+            exit();
+        }
+
+        // Permitir editar si es el dueño O si tiene permiso de edición (autorizador/admin)
+        $esDuenio = ($solicitud->usuario_id == $_SESSION['usuario_id']);
+        $esAutorizador = SesionHelper::tienePermiso('permisos', 'editar');
+
+        if (!$esDuenio && !$esAutorizador) {
+            $_SESSION['mensaje_error'] = "No tiene permiso para editar esta solicitud.";
             header('location: ' . URLROOT . '/permisos/index');
             exit();
         }
@@ -142,62 +152,94 @@ class PermisosController extends Controller {
             $data = [
                 'titulo' => 'Editar Solicitud de Permiso',
                 'solicitud' => $solicitud,
-                'motivos' => $this->permisoModel->obtenerMotivos()
+                'motivos' => $this->permisoModel->obtenerMotivosParaUsuario($_SESSION['usuario_id'])
             ];
             $this->view('permisos/editar', $data);
         }
     }
 
     public function aprobar() {
+        header('Content-Type: application/json');
+        if (!SesionHelper::tienePermiso('permisos', 'editar')) {
+            echo json_encode(['success' => false, 'message' => 'No tiene permiso para autorizar']);
+            exit();
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id = $_POST['id'];
-            $firma = $_POST['firma_autorizacion'];
-            $autorizador_id = $_SESSION['usuario_id'];
-            
-            if ($this->permisoModel->aprobarSolicitud($id, $firma, $autorizador_id)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error al aprobar']);
+            try {
+                $id = $_POST['id'];
+                $firma = $_POST['firma_autorizacion'];
+                $autorizador_id = $_SESSION['usuario_id'];
+                
+                if ($this->permisoModel->aprobarSolicitud($id, $firma, $autorizador_id)) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Error al aprobar']);
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
         }
     }
 
     public function rechazar() {
+        header('Content-Type: application/json');
+        if (!SesionHelper::tienePermiso('permisos', 'editar')) {
+            echo json_encode(['success' => false, 'message' => 'No tiene permiso para rechazar']);
+            exit();
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id = $_POST['id'];
-            $firma = $_POST['firma_rechazo'];
-            $autorizador_id = $_SESSION['usuario_id'];
-            
-            if ($this->permisoModel->rechazarSolicitud($id, $firma, $autorizador_id)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error al rechazar']);
+            try {
+                $id = $_POST['id'];
+                $firma = $_POST['firma_rechazo'];
+                $autorizador_id = $_SESSION['usuario_id'];
+                
+                if ($this->permisoModel->rechazarSolicitud($id, $firma, $autorizador_id)) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Error al rechazar']);
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
         }
     }
 
     public function firmar_regreso() {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id = $_POST['id'];
-            $firma = $_POST['firma_regreso_empleado'];
-            
-            if ($this->permisoModel->firmarRegresoEmpleado($id, $firma)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error al guardar firma de regreso']);
+            try {
+                $id = $_POST['id'];
+                $firma = $_POST['firma_regreso_empleado'];
+                
+                if ($this->permisoModel->firmarRegresoEmpleado($id, $firma)) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Error al guardar firma de regreso']);
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
         }
     }
 
     public function confirmar_regreso() {
+        header('Content-Type: application/json');
+        if (!SesionHelper::tienePermiso('permisos', 'editar')) {
+            echo json_encode(['success' => false, 'message' => 'No tiene permiso para confirmar regreso']);
+            exit();
+        }
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id = $_POST['id'];
-            $firma = $_POST['firma_regreso_autorizador'];
-            
-            if ($this->permisoModel->confirmarRegresoAutorizador($id, $firma)) {
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error al confirmar regreso']);
+            try {
+                $id = $_POST['id'];
+                $firma = $_POST['firma_regreso_autorizador'];
+                
+                if ($this->permisoModel->confirmarRegresoAutorizador($id, $firma)) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Error al confirmar regreso']);
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
         }
     }

@@ -130,9 +130,11 @@ require_once '../views/layouts/header.php';
             <i class="fas fa-users-cog" style="font-size: 1.5rem; color: var(--primary-color);"></i>
             <h2 style="margin:0; font-size: 1.2rem; color: var(--text-main); font-weight: 800;">Gestión de Personal</h2>
         </div>
-        <a href="<?php echo URLROOT; ?>/usuarios/crear" class="btn btn-success" style="padding: 0.5rem 1.2rem; border-radius: 8px; font-size: 0.9rem;">
-            <i class="fas fa-plus-circle"></i> Nuevo Usuario
-        </a>
+        <?php if (app\Helpers\SesionHelper::tienePermiso('usuarios', 'crear')): ?>
+            <a href="<?php echo URLROOT; ?>/usuarios/crear" class="btn btn-success" style="padding: 0.5rem 1.2rem; border-radius: 8px; font-size: 0.9rem;">
+                <i class="fas fa-plus-circle"></i> Nuevo Usuario
+            </a>
+        <?php endif; ?>
     </div>
 
     <!-- Sección de Búsqueda debajo de Gestión de Personal -->
@@ -160,11 +162,15 @@ require_once '../views/layouts/header.php';
                     $nombres = explode(' ', $usuario->nombre);
                     $iniciales = strtoupper(substr($nombres[0], 0, 1) . (isset($nombres[1]) ? substr($nombres[1], 0, 1) : ''));
                     $badgeClass = ($usuario->rol == 'superadmin') ? 'badge-superadmin' : (($usuario->rol == 'administrativos') ? 'badge-admin' : (($usuario->rol == 'supervisor') ? 'badge-supervisor' : 'badge-empleado'));
+                    
+                    // Función para generar color único
+                    $hash = md5($usuario->nombre);
+                    $color = '#' . substr($hash, 0, 6);
                 ?>
                 <tr>
                     <td>
                         <div class="user-info-cell">
-                            <div class="user-avatar"><?php echo $iniciales; ?></div>
+                            <div class="user-avatar" style="background-color: <?php echo $color; ?>;"><?php echo $iniciales; ?></div>
                             <div class="user-details">
                                 <span class="user-name"><?php echo $usuario->nombre; ?></span>
                                 <span class="user-email"><?php echo $usuario->email; ?></span>
@@ -176,8 +182,17 @@ require_once '../views/layouts/header.php';
                     <td><span style="color: var(--text-main); font-size: 0.85rem;"><?php echo $usuario->area; ?></span></td>
                     <td style="text-align: center !important;">
                         <div style="display: flex; justify-content: center; gap: 6px;">
-                            <a href="<?php echo URLROOT; ?>/usuarios/editar/<?php echo $usuario->id; ?>" class="btn btn-primary" style="padding: 6px 10px; font-size: 10px;"><i class="fas fa-edit"></i></a>
-                            <button class="btn btn-danger btn-eliminar-trigger" data-id="<?php echo $usuario->id; ?>" data-nombre="<?php echo $usuario->nombre; ?>" style="padding: 6px 10px; font-size: 10px;"><i class="fas fa-trash-alt"></i></button>
+                            <?php if (app\Helpers\SesionHelper::tienePermiso('usuarios', 'editar')): ?>
+                                <a href="<?php echo URLROOT; ?>/usuarios/editar/<?php echo $usuario->id; ?>" class="btn btn-primary" style="padding: 6px 10px; font-size: 10px;" title="Editar Datos"><i class="fas fa-edit"></i></a>
+                            <?php endif; ?>
+
+                            <?php if (app\Helpers\SesionHelper::tienePermiso('configuracion', 'seguridad')): ?>
+                                <a href="<?php echo URLROOT; ?>/configuracion/seguridad?usuario_id=<?php echo $usuario->id; ?>" class="btn btn-warning" style="padding: 6px 10px; font-size: 10px; background-color: #f59e0b; color: white !important;" title="Gestionar Permisos"><i class="fas fa-user-lock"></i></a>
+                            <?php endif; ?>
+                            
+                            <?php if (app\Helpers\SesionHelper::tienePermiso('usuarios', 'eliminar')): ?>
+                                <button class="btn btn-danger btn-eliminar-trigger" data-id="<?php echo $usuario->id; ?>" data-nombre="<?php echo $usuario->nombre; ?>" style="padding: 6px 10px; font-size: 10px;"><i class="fas fa-trash-alt"></i></button>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>

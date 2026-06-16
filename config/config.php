@@ -5,6 +5,9 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'sicap_db');
 
+// Zona Horaria
+date_default_timezone_set('America/Bogota');
+
 // URL Raíz
 define('URLROOT', 'http://localhost/SICAP');
 

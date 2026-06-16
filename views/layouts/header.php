@@ -255,6 +255,9 @@
                 <img src="<?php echo URLROOT; ?>/img/gyp.png" alt="Logo GyP">
             </div>
             <h1 class="sidebar-header">SICAP</h1>
+            <div style="color: white; font-size: 0.9rem; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-user-circle"></i> <?php echo $_SESSION['usuario_nombre']; ?>
+            </div>
         </div>
         <div class="sidebar-menu">
             <a href="<?php echo URLROOT; ?>/dashboard" class="menu-item"><i class="fas fa-home"></i> <span>Dashboard</span></a>
@@ -264,23 +267,54 @@
                 <i class="fas fa-chevron-right chevron"></i>
             </button>
             <div class="dropdown-container">
-                <a href="<?php echo URLROOT; ?>/usuarios" class="menu-item submenu-item"><i class="fas fa-users"></i> <span>Usuarios</span></a>
-                <a href="<?php echo URLROOT; ?>/asistencia" class="menu-item submenu-item"><i class="fas fa-clock"></i> <span>Asistencia</span></a>
-                <a href="<?php echo URLROOT; ?>/permisos" class="menu-item submenu-item"><i class="fas fa-file-contract"></i> <span>Permisos</span></a>
-                <a href="<?php echo URLROOT; ?>/horarios" class="menu-item submenu-item"><i class="fas fa-calendar-alt"></i> <span>Horarios</span></a>
-                <a href="<?php echo URLROOT; ?>/alertas" class="menu-item submenu-item"><i class="fas fa-bell"></i> <span>Alertas</span></a>
-                <a href="<?php echo URLROOT; ?>/informes" class="menu-item submenu-item"><i class="fas fa-chart-bar"></i> <span>Informes</span></a>
+                <?php if (app\Helpers\SesionHelper::tienePermiso('usuarios', 'ver')): ?>
+                    <a href="<?php echo URLROOT; ?>/usuarios" class="menu-item submenu-item"><i class="fas fa-users"></i> <span>Usuarios</span></a>
+                <?php endif; ?>
+
+                <?php if (app\Helpers\SesionHelper::tienePermiso('asistencia', 'ver')): ?>
+                    <a href="<?php echo URLROOT; ?>/asistencia" class="menu-item submenu-item"><i class="fas fa-clock"></i> <span>Asistencia</span></a>
+                <?php endif; ?>
+
+                <?php if (app\Helpers\SesionHelper::tienePermiso('permisos', 'ver')): ?>
+                    <a href="<?php echo URLROOT; ?>/permisos" class="menu-item submenu-item"><i class="fas fa-file-contract"></i> <span>Permisos</span></a>
+                <?php endif; ?>
+
+                <?php if (app\Helpers\SesionHelper::tienePermiso('horarios', 'ver')): ?>
+                    <a href="<?php echo URLROOT; ?>/horarios" class="menu-item submenu-item"><i class="fas fa-calendar-alt"></i> <span>Horarios</span></a>
+                <?php endif; ?>
+
+                <?php if (app\Helpers\SesionHelper::tienePermiso('alertas', 'ver')): ?>
+                    <a href="<?php echo URLROOT; ?>/alertas" class="menu-item submenu-item"><i class="fas fa-bell"></i> <span>Alertas</span></a>
+                <?php endif; ?>
+
+                <?php if (app\Helpers\SesionHelper::tienePermiso('informes', 'ver')): ?>
+                    <a href="<?php echo URLROOT; ?>/informes" class="menu-item submenu-item"><i class="fas fa-chart-bar"></i> <span>Informes</span></a>
+                <?php endif; ?>
             </div>
 
-            <button class="menu-item dropdown-btn">
-                <i class="fas fa-cog"></i> <span>Configuración</span>
-                <i class="fas fa-chevron-right chevron"></i>
-            </button>
-            <div class="dropdown-container">
-                <a href="<?php echo URLROOT; ?>/configuracion/seguridad" class="menu-item submenu-item"><i class="fas fa-shield-alt"></i> <span>Seguridad</span></a>
-                <a href="<?php echo URLROOT; ?>/configuracion/motivos" class="menu-item submenu-item"><i class="fas fa-list-ul"></i> <span>Motivos de Permisos</span></a>
-                <a href="<?php echo URLROOT; ?>/configuracion/sistema" class="menu-item submenu-item"><i class="fas fa-desktop"></i> <span>Sistema</span></a>
-            </div>
+            <?php if (app\Helpers\SesionHelper::tienePermiso('configuracion', 'ver')): ?>
+                <button class="menu-item dropdown-btn">
+                    <i class="fas fa-cog"></i> <span>Configuración</span>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </button>
+                <div class="dropdown-container">
+                    <?php if (app\Helpers\SesionHelper::tienePermiso('configuracion', 'seguridad')): ?>
+                        <a href="<?php echo URLROOT; ?>/configuracion/seguridad" class="menu-item submenu-item"><i class="fas fa-shield-alt"></i> <span>Seguridad</span></a>
+                    <?php endif; ?>
+                    
+                    <?php if (app\Helpers\SesionHelper::tienePermiso('configuracion', 'motivos_permiso')): ?>
+                        <a href="<?php echo URLROOT; ?>/configuracion/motivos" class="menu-item submenu-item"><i class="fas fa-list-ul"></i> <span>Motivos de Permisos</span></a>
+                    <?php endif; ?>
+
+                    <?php if (app\Helpers\SesionHelper::tienePermiso('configuracion', 'metodos_acceso')): ?>
+                        <a href="<?php echo URLROOT; ?>/configuracion/metodosAuth" class="menu-item submenu-item"><i class="fas fa-key"></i> <span>Métodos de Acceso</span></a>
+                    <?php endif; ?>
+                    
+                    <?php if ($_SESSION['usuario_rol'] == 'superadmin'): ?>
+                        <a href="<?php echo URLROOT; ?>/configuracion/sistema" class="menu-item submenu-item"><i class="fas fa-desktop"></i> <span>Sistema</span></a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
         </div>
         
         <div class="sidebar-footer">
@@ -303,13 +337,6 @@
     </script>
 
     <div class="main-content">
-        <div class="top-nav">
-            <div class="page-title"><strong><?php echo $data['titulo']; ?></strong></div>
-            
-            <div class="user-info">
-                <span><i class="fas fa-user-circle"></i> <?php echo $_SESSION['usuario_nombre']; ?></span>
-            </div>
-        </div>
         <div class="content-body">
             <!-- Modal de Éxito Personalizado (Pop-up) -->
             <div id="modal-exito" class="modal-overlay">
@@ -324,32 +351,62 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Modal de Error Personalizado (Pop-up) -->
+            <div id="modal-error" class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="modal-title" style="color: var(--danger-color);">Error</div>
+                    <div id="mensaje-error-modal" class="modal-text"></div>
+                    <div class="modal-footer">
+                        <button onclick="cerrarModalError()" class="btn btn-danger" style="padding: 0.8rem 2rem;">Aceptar</button>
+                    </div>
+                </div>
+            </div>
             
             <?php 
-            // Verificar si hay mensajes de éxito en la sesión
+            // Verificar si hay mensajes en la sesión
             if (isset($_SESSION['mensaje_exito'])): ?>
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
                         mostrarPopUpExito("<?php echo $_SESSION['mensaje_exito']; ?>");
                     });
                 </script>
-            <?php unset($_SESSION['mensaje_exito']); endif; ?>
+            <?php unset($_SESSION['mensaje_exito']); endif; 
+            
+            if (isset($_SESSION['mensaje_error'])): ?>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        mostrarPopUpError("<?php echo $_SESSION['mensaje_error']; ?>");
+                    });
+                </script>
+            <?php unset($_SESSION['mensaje_error']); endif; ?>
 
             <script>
                 function mostrarPopUpExito(mensaje) {
                     const modal = document.getElementById('modal-exito');
                     const textContainer = document.getElementById('mensaje-exito-modal');
-                    textContainer.textContent = mensaje;
+                    textContainer.innerHTML = mensaje;
                     modal.style.display = 'flex';
-                    
-                    // Auto-cerrar a los 5 segundos
-                    setTimeout(() => {
-                        cerrarModalExito();
-                    }, 5000);
+                    setTimeout(() => { cerrarModalExito(); }, 5000);
                 }
 
                 function cerrarModalExito() {
                     const modal = document.getElementById('modal-exito');
+                    if(modal) modal.style.display = 'none';
+                }
+
+                function mostrarPopUpError(mensaje) {
+                    const modal = document.getElementById('modal-error');
+                    const textContainer = document.getElementById('mensaje-error-modal');
+                    textContainer.innerHTML = mensaje;
+                    modal.style.display = 'flex';
+                }
+
+                function cerrarModalError() {
+                    const modal = document.getElementById('modal-error');
                     if(modal) modal.style.display = 'none';
                 }
             </script>

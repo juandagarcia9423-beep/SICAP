@@ -53,9 +53,9 @@
     </a>
 </div>
 
-<div class="card" style="margin-top: 2rem;">
-    <h3>Bienvenido al Panel de Control SICAP</h3>
-    <p>Utilice las tarjetas superiores para ir directamente a cada módulo o revise el resumen estadístico inicial.</p>
+<div class="card" style="margin-top: 2rem; background-color: var(--primary-color); color: white; border: none;">
+    <h3 style="color: white; margin: 0;">Bienvenido al Panel de Control SICAP - Desarrollado por JD Soluciones</h3>
+    <p style="margin-bottom: 0; opacity: 0.9;">Utilice las tarjetas superiores para ir directamente a cada módulo o revise el resumen estadístico inicial.</p>
 </div>
 
 <?php require_once '../views/layouts/footer.php'; ?>

@@ -34,11 +34,17 @@ class DashboardController extends Controller {
             $asistenciaHoy = $conn->query("SELECT COUNT(DISTINCT usuario_id) FROM asistencia WHERE tipo = 'entrada' AND DATE(registrado_en) = '$hoy'")->fetchColumn();
             $porcentajeAsistencia = ($totalUsuarios > 0) ? round(($asistenciaHoy / $totalUsuarios) * 100) : 0;
 
+            // 3. Permisos Pendientes
+            $permisosPendientes = $conn->query("SELECT COUNT(*) FROM solicitudes_permiso WHERE estado = 'pendiente'")->fetchColumn();
+
+            // 4. Alertas Activas (No leídas)
+            $alertasActivas = $conn->query("SELECT COUNT(*) FROM alertas WHERE leido = FALSE")->fetchColumn();
+
             $stats = [
                 'total_usuarios' => $totalUsuarios,
                 'asistencia_hoy' => $porcentajeAsistencia . '%',
-                'permisos_pendientes' => 0,
-                'alertas_activas' => 0
+                'permisos_pendientes' => $permisosPendientes,
+                'alertas_activas' => $alertasActivas
             ];
         } else {
             $stats = null; // Indica que no se deben mostrar

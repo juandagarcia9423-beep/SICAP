@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - SICAP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -104,6 +105,23 @@
                         <input type="password" name="password" id="password" required placeholder="Ingrese su contraseña">
                     </div>
                     <button type="submit">Entrar al Sistema</button>
+                    
+                    <?php if(($data['authConfig']['pin'] == 1) || ($data['authConfig']['facial'] == 1) || ($data['authConfig']['qr'] == 1)): ?>
+                    <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 1rem;">
+                        <p style="font-size: 0.8rem; color: #555; margin-bottom: 0.8rem;">Otras formas de acceso:</p>
+                        <div style="display: flex; justify-content: center; gap: 1rem;">
+                            <?php if($data['authConfig']['pin'] == 1): ?>
+                                <a href="<?php echo URLROOT; ?>/auth/pin" title="Acceso por PIN"><i class="fas fa-key" style="font-size: 1.5rem; color: #007bff;"></i></a>
+                            <?php endif; ?>
+                            <?php if($data['authConfig']['facial'] == 1): ?>
+                                <a href="<?php echo URLROOT; ?>/auth/facial" title="Acceso Facial"><i class="fas fa-user-check" style="font-size: 1.5rem; color: #28a745;"></i></a>
+                            <?php endif; ?>
+                            <?php if($data['authConfig']['qr'] == 1): ?>
+                                <a href="<?php echo URLROOT; ?>/auth/qr" title="Acceso por QR"><i class="fas fa-qrcode" style="font-size: 1.5rem; color: #6f42c1;"></i></a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 </form>
             </div>
 
@@ -120,5 +138,33 @@
             © 2026 JDSoluciones. Todos los derechos reservados.
         </div>
     </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if(isset($_SESSION['mensaje_exito'])): ?>
+                Swal.fire({
+                    title: '¡Marcación Correcta!',
+                    html: '<?php echo $_SESSION['mensaje_exito']; ?>',
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar',
+                    timer: 5000,
+                    timerProgressBar: true
+                });
+                <?php unset($_SESSION['mensaje_exito']); ?>
+            <?php endif; ?>
+
+            <?php if(isset($_SESSION['mensaje_error'])): ?>
+                Swal.fire({
+                    title: 'Error',
+                    text: '<?php echo $_SESSION['mensaje_error']; ?>',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar'
+                });
+                <?php unset($_SESSION['mensaje_error']); ?>
+            <?php endif; ?>
+        });
+    </script>
 </body>
 </html>

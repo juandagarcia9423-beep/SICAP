@@ -179,15 +179,58 @@
                     </div>
                 </div>
 
+                <div class="section-title" style="margin-top: 0.5rem;"><i class="fas fa-lock"></i> Métodos de Acceso</div>
+
+                <div class="input-group" style="grid-column: span 3; display: flex; gap: 1rem; align-items: center;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="permite_pin" value="1"> Permitir PIN
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="permite_facial" value="1"> Permitir Facial
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="permite_qr" value="1"> Permitir QR
+                    </label>
+                </div>
+
                 <div class="input-group">
-                    <label>Tipo de Jornada</label>
+                    <label>PIN Secreto</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-business-time"></i>
-                        <select name="tipo_jornada">
-                            <option value="rotativo">Rotativo</option>
-                            <option value="fijo">Fijo</option>
-                            <option value="flexible">Flexible</option>
-                        </select>
+                        <i class="fas fa-key"></i>
+                        <input type="text" name="pin_secreto" placeholder="PIN de 4 dígitos">
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top: 0.5rem;"><i class="fas fa-camera"></i> Enrolamiento Facial</div>
+                
+                <div class="input-group" style="grid-column: span 3; text-align: center;">
+                    <div id="facial-setup-container" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; border: 1px dashed #cbd5e1; padding: 1.5rem; border-radius: 12px; background: #f8fafc;">
+                        <div id="webcam-preview-container" style="position: relative; width: 320px; height: 240px; background: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                            <video id="webcam" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                            <canvas id="captured-photo" style="display: none; width: 100%; height: 100%; object-fit: cover;"></canvas>
+                            <div id="photo-placeholder" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; background: #f1f5f9;">
+                                <i class="fas fa-user-circle" style="font-size: 4rem; margin-bottom: 0.5rem;"></i>
+                                <span style="font-size: 0.8rem; font-weight: 600;">Cámara desactivada</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 0.8rem;">
+                            <button type="button" id="btn-start-webcam" class="btn" style="background: #3b82f6; color: white; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 6px;">
+                                <i class="fas fa-video"></i> Activar Cámara
+                            </button>
+                            <button type="button" id="btn-capture-photo" class="btn" style="background: #10b981; color: white; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 6px; display: none;">
+                                <i class="fas fa-camera"></i> Capturar Rostro
+                            </button>
+                            <button type="button" id="btn-retake-photo" class="btn" style="background: #f59e0b; color: white; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 6px; display: none;">
+                                <i class="fas fa-redo"></i> Volver a Tomar
+                            </button>
+                        </div>
+                        
+                        <input type="hidden" name="foto_facial" id="foto_facial_input">
+                        
+                        <div id="current-photo-status" style="font-size: 0.85rem; color: #64748b;">
+                            <i class="fas fa-info-circle"></i> Capture una foto del rostro del empleado para habilitar el acceso facial.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -201,5 +244,63 @@
         </form>
     </div>
 </div>
+
+<script>
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('captured-photo');
+    const photoInput = document.getElementById('foto_facial_input');
+    const btnStart = document.getElementById('btn-start-webcam');
+    const btnCapture = document.getElementById('btn-capture-photo');
+    const btnRetake = document.getElementById('btn-retake-photo');
+    const placeholder = document.getElementById('photo-placeholder');
+    const statusText = document.getElementById('current-photo-status');
+
+    let stream = null;
+
+    btnStart.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            placeholder.style.display = 'none';
+            video.style.display = 'block';
+            canvas.style.display = 'none';
+            btnStart.style.display = 'none';
+            btnCapture.style.display = 'inline-block';
+            btnRetake.style.display = 'none';
+        } catch (err) {
+            console.error("Error accediendo a la cámara: ", err);
+            alert("No se pudo acceder a la cámara. Asegúrese de dar los permisos necesarios.");
+        }
+    });
+
+    btnCapture.addEventListener('click', () => {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const imageData = canvas.toDataURL('image/jpeg');
+        photoInput.value = imageData;
+        
+        // Detener stream
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        
+        video.style.display = 'none';
+        canvas.style.display = 'block';
+        btnCapture.style.display = 'none';
+        btnRetake.style.display = 'inline-block';
+        btnStart.style.display = 'inline-block';
+        btnStart.innerHTML = '<i class="fas fa-video"></i> Reactivar Cámara';
+        
+        statusText.innerHTML = '<i class="fas fa-check-circle"></i> Rostro capturado exitosamente. Guarde el usuario para finalizar.';
+        statusText.style.color = '#059669';
+    });
+
+    btnRetake.addEventListener('click', () => {
+        btnStart.click();
+    });
+</script>
 
 <?php require_once '../views/layouts/footer.php'; ?>

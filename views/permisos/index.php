@@ -87,7 +87,25 @@ function nombreMes($fecha) {
     .status-aprobada { background: #dcfce7; color: #166534; }
     .status-rechazada { background: #fee2e2; color: #991b1b; }
 
-    .btn-action { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; width: 100%; margin-bottom: 5px; color: white !important; }
+    .btn-action { 
+        padding: 0 16px; 
+        height: 36px;
+        border-radius: 8px; 
+        font-size: 11px; 
+        font-weight: 800; 
+        cursor: pointer; 
+        border: none; 
+        transition: 0.2s; 
+        width: 100%; 
+        color: white !important; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        box-sizing: border-box;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
     .btn-action:last-child { margin-bottom: 0; }
 
     .btn-mustard { background-color: #d97706; }
@@ -502,28 +520,40 @@ function nombreMes($fecha) {
                 ${firmasRegresoHTML}
                 <div style="margin-top: 0.8rem;"><span class="status-badge status-${s.estado}">${s.estado}</span></div>
             </div>
-            <div class="card-part" style="min-width: 150px;">
+            <div class="card-part" style="min-width: 160px; display: flex; flex-direction: column; gap: 0.4rem;">
                 ${String(s.estado).toLowerCase() === 'pendiente' ? `
-                    <button class="btn-action btn-primary" onclick="location.href='${URLROOT}/permisos/editar/${s.id}'">
+                    <a href="${URLROOT}/permisos/editar/${s.id}" class="btn-action btn-primary" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px;">
                         <i class="fas fa-edit"></i> Editar
-                    </button>
+                    </a>
                 ` : `
-                    <button class="btn-action btn-primary" disabled><i class="fas fa-eye"></i> Detalles</button>
+                    <button class="btn-action btn-secondary" disabled style="background-color: #e2e8f0; color: #94a3b8 !important;"><i class="fas fa-eye"></i> Detalles</button>
                 `}
                 
-                ${tab === 'mis-solicitudes' && String(s.estado).toLowerCase() === 'pendiente' ? `<button class="btn-action btn-danger" onclick="alert('Funcionalidad próximamente')"><i class="fas fa-trash"></i> Cancelar</button>` : ''}
+                ${tab === 'mis-solicitudes' && String(s.estado).toLowerCase() === 'pendiente' ? `
+                    <button class="btn-action btn-danger" onclick="alert('Funcionalidad próximamente')">
+                        <i class="fas fa-trash"></i> Cancelar
+                    </button>
+                ` : ''}
                 
                 ${tab === 'mis-solicitudes' && String(s.estado).toLowerCase() === 'aprobada' && Number(s.regresa_laborar) === 1 && !s.firma_regreso_empleado ? `
-                    <button class="btn-action btn-mustard" onclick="openSignatureModal(${s.id}, 'regreso_empleado')"><i class="fas fa-pen"></i> Firmar Regreso</button>
+                    <button class="btn-action btn-mustard" onclick="openSignatureModal(${s.id}, 'regreso_empleado')">
+                        <i class="fas fa-pen"></i> Firmar Regreso
+                    </button>
                 ` : ''}
 
-                ${tab === 'autorizaciones' && String(s.estado).toLowerCase() === 'pendiente' ? `
-                    <button type="button" class="btn-action btn-success" onclick="openSignatureModal(${s.id}, 'aprobar')"><i class="fas fa-check"></i> Aprobar</button>
-                    <button type="button" class="btn-action btn-danger" onclick="openSignatureModal(${s.id}, 'rechazar')"><i class="fas fa-ban"></i> Rechazar</button>
+                ${tab === 'autorizaciones' && String(s.estado).toLowerCase() === 'pendiente' && <?php echo app\Helpers\SesionHelper::tienePermiso('permisos', 'editar') ? 'true' : 'false'; ?> ? `
+                    <button type="button" class="btn-action btn-success" onclick="openSignatureModal(${s.id}, 'aprobar')">
+                        <i class="fas fa-check"></i> Aprobar
+                    </button>
+                    <button type="button" class="btn-action btn-danger" onclick="openSignatureModal(${s.id}, 'rechazar')">
+                        <i class="fas fa-ban"></i> Rechazar
+                    </button>
                 ` : ''}
 
-                ${tab === 'autorizaciones' && String(s.estado).toLowerCase() === 'aprobada' && Number(s.regresa_laborar) === 1 && s.firma_regreso_empleado && !s.firma_regreso_autorizador ? `
-                    <button class="btn-action btn-mustard" onclick="openSignatureModal(${s.id}, 'regreso_autorizador')"><i class="fas fa-check-double"></i> Confirmar Regreso</button>
+                ${tab === 'autorizaciones' && String(s.estado).toLowerCase() === 'aprobada' && Number(s.regresa_laborar) === 1 && s.firma_regreso_empleado && !s.firma_regreso_autorizador && <?php echo app\Helpers\SesionHelper::tienePermiso('permisos', 'editar') ? 'true' : 'false'; ?> ? `
+                    <button class="btn-action btn-mustard" onclick="openSignatureModal(${s.id}, 'regreso_autorizador')">
+                        <i class="fas fa-check-double"></i> Confirmar Regreso
+                    </button>
                 ` : ''}
             </div>
         `;
