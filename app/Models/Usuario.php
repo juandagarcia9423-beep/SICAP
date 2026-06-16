@@ -32,7 +32,8 @@ class Usuario {
 
     // Registrar nuevo usuario
     public function registrar($data) {
-        $this->db->query('INSERT INTO usuarios (nombre, usuario, cedula, email, password_hash, rol, area, tipo_jornada, tipo_personal, permite_pin, permite_facial, permite_qr, pin_secreto, foto_facial, huella) VALUES (:nombre, :usuario, :cedula, :email, :password_hash, :rol, :area, :tipo_jornada, :tipo_personal, :permite_pin, :permite_facial, :permite_qr, :pin_secreto, :foto_facial, "")');
+        $this->db->query('INSERT INTO usuarios (nombre, usuario, cedula, email, password_hash, rol, area, tipo_jornada, tipo_personal, permite_pin, permite_facial, permite_qr, pin_secreto, foto_facial, dias_cambio_password, alerta_cambio_password, ultimo_cambio_password, huella) 
+                          VALUES (:nombre, :usuario, :cedula, :email, :password_hash, :rol, :area, :tipo_jornada, :tipo_personal, :permite_pin, :permite_facial, :permite_qr, :pin_secreto, :foto_facial, :dias_cambio_password, :alerta_cambio_password, CURRENT_TIMESTAMP, "")');
         
         $this->db->bind(':nombre', $data['nombre']);
         $this->db->bind(':usuario', $data['usuario']);
@@ -48,6 +49,8 @@ class Usuario {
         $this->db->bind(':permite_qr', $data['permite_qr'] ? 1 : 0);
         $this->db->bind(':pin_secreto', $data['pin_secreto']);
         $this->db->bind(':foto_facial', $data['foto_facial'] ?? null);
+        $this->db->bind(':dias_cambio_password', $data['dias_cambio_password']);
+        $this->db->bind(':alerta_cambio_password', $data['alerta_cambio_password']);
 
         return $this->db->execute();
     }
@@ -61,18 +64,24 @@ class Usuario {
 
     // Actualizar usuario
     public function actualizar($data) {
-        $sql = 'UPDATE usuarios SET nombre = :nombre, usuario = :usuario, cedula = :cedula, email = :email, rol = :rol, area = :area, tipo_jornada = :tipo_jornada, tipo_personal = :tipo_personal, permite_pin = :permite_pin, permite_facial = :permite_facial, permite_qr = :permite_qr, pin_secreto = :pin_secreto, foto_facial = :foto_facial';
+        $sql = 'UPDATE usuarios SET nombre = :nombre, usuario = :usuario, cedula = :cedula, email = :email, rol = :rol, area = :area, tipo_jornada = :tipo_jornada, tipo_personal = :tipo_personal, permite_pin = :permite_pin, permite_facial = :permite_facial, permite_qr = :permite_qr, pin_secreto = :pin_secreto, foto_facial = :foto_facial, dias_cambio_password = :dias_cambio_password, alerta_cambio_password = :alerta_cambio_password';
         
         if (!empty($data['password_hash'])) {
-            $sql .= ', password_hash = :password_hash';
+            $sql .= ', password_hash = :password_hash, ultimo_cambio_password = CURRENT_TIMESTAMP';
+        } elseif (!empty($data['ultimo_cambio_password'])) {
+            $sql .= ', ultimo_cambio_password = :ultimo_cambio_password';
         }
+        
         $sql .= ' WHERE id = :id';
         
         $this->db->query($sql);
         
         if (!empty($data['password_hash'])) {
             $this->db->bind(':password_hash', $data['password_hash']);
+        } elseif (!empty($data['ultimo_cambio_password'])) {
+            $this->db->bind(':ultimo_cambio_password', $data['ultimo_cambio_password']);
         }
+
         $this->db->bind(':id', $data['id']);
         $this->db->bind(':nombre', $data['nombre']);
         $this->db->bind(':usuario', $data['usuario']);
@@ -87,6 +96,8 @@ class Usuario {
         $this->db->bind(':permite_qr', $data['permite_qr'] ? 1 : 0);
         $this->db->bind(':pin_secreto', $data['pin_secreto']);
         $this->db->bind(':foto_facial', $data['foto_facial'] ?? null);
+        $this->db->bind(':dias_cambio_password', $data['dias_cambio_password']);
+        $this->db->bind(':alerta_cambio_password', $data['alerta_cambio_password']);
 
         return $this->db->execute();
     }

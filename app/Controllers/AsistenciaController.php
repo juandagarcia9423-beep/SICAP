@@ -27,61 +27,8 @@ class AsistenciaController extends Controller {
         ];
 
         // --- Validación de Horarios y Novedades ---
-        $alertaModel = $this->model('Alerta');
-        
         $marcaciones = $this->asistenciaModel->obtenerMarcaciones($filtros);
-        $alertaModel = $this->model('Alerta');
-        
-        // --- Validación de Horarios y Novedades ---
-
-        foreach ($marcaciones as &$m) {
-            $raw_timestamp = $m->registrado_en; 
-            $parts = explode(' ', $raw_timestamp);
-            $fecha_str = $parts[0];
-            $hora_str = $parts[1]; // "15:00:55"
-
-            // Convertir fecha de Y-m-d a d/m/Y manualmente
-            $fecha_parts = explode('-', $fecha_str);
-            $fecha_format = $fecha_parts[2] . '/' . $fecha_parts[1] . '/' . $fecha_parts[0];
-
-            $dia_semana = (int)date('N', strtotime($fecha_str));
-            $horario = $this->asistenciaModel->obtenerTurnoParaUsuario($m->usuario_id, $dia_semana);
-            
-            // Verificar permisos aprobados para hoy
-            $db = new \app\Core\Database();
-            $db->query("SELECT COUNT(*) FROM solicitudes_permiso 
-                        WHERE usuario_id = :usuario_id AND estado = 'aprobada' AND DATE(fecha_permiso) = :fecha");
-            $db->bind(':usuario_id', $m->usuario_id);
-            $db->bind(':fecha', $fecha_str);
-            $tienePermiso = $db->fetchColumn() > 0;
-
-            $m->estado_marcacion = 'A Tiempo';
-
-            if ($horario) {
-                // Cálculo de tiempo en segundos
-                $hora_marcacion = strtotime($hora_str);
-                $hora_entrada = strtotime($horario->hora_entrada);
-                $hora_salida = strtotime($horario->hora_salida);
-                
-                // Permitir 10 minutos de tolerancia (600 segundos)
-                $tolerancia = 600;
-
-                if ($m->tipo == 'entrada') {
-                    if ($hora_str > $horario->hora_entrada && !$tienePermiso) {
-                        $m->estado_marcacion = 'Tarde';
-                    }
-                } elseif ($m->tipo == 'salida') {
-                    // Si sale antes de tiempo
-                    if ($hora_str < $horario->hora_salida && !$tienePermiso) {
-                        $m->estado_marcacion = 'Antes de Tiempo';
-                    }
-                    // Si sale más de 10 minutos después
-                    elseif ($hora_marcacion > ($hora_salida + $tolerancia) && !$tienePermiso) {
-                        $m->estado_marcacion = 'Tardanza en Salir';
-                    }
-                }
-            }
-        }
+        $this->asistenciaModel->procesarEstadosMarcaciones($marcaciones);
         // ------------------------------
         
         // Cargar lista de usuarios para el selector del filtro

@@ -58,11 +58,31 @@ class DashboardController extends Controller {
         $bancoModel = $this->model('BancoHoras');
         $saldo = $bancoModel->obtenerSaldo($_SESSION['usuario_id']);
 
+        // --- Lógica de Alerta de Contraseña ---
+        $usuarioModel = $this->model('Usuario');
+        $usuario = $usuarioModel->obtenerUsuarioPorId($_SESSION['usuario_id']);
+        
+        $alertaPassword = false;
+        $diasConfigurados = $usuario->dias_cambio_password;
+
+        if ($usuario->alerta_cambio_password == 1) {
+            $fechaUltimoCambio = new \DateTime(date('Y-m-d', strtotime($usuario->ultimo_cambio_password)));
+            $hoy = new \DateTime(date('Y-m-d'));
+            $diferencia = $hoy->diff($fechaUltimoCambio)->days;
+
+            if ($diferencia >= $diasConfigurados) {
+                $alertaPassword = true;
+            }
+        }
+        // --------------------------------------
+
         $data = [
             'titulo' => 'Dashboard Principal',
             'stats' => $stats,
             'saldo' => $saldo,
-            'puede_ver_stats' => ($stats !== null)
+            'puede_ver_stats' => ($stats !== null),
+            'alerta_password' => $alertaPassword,
+            'dias_configurados' => $diasConfigurados
         ];
         $this->view('dashboard/index', $data);
     }

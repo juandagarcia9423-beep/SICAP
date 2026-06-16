@@ -212,6 +212,33 @@
                     </div>
                 </div>
 
+                <div class="section-title" style="margin-top: 0.5rem;"><i class="fas fa-shield-alt"></i> Seguridad y Contraseña</div>
+
+                <div class="input-group">
+                    <label>Frecuencia de Cambio (Días)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-history"></i>
+                        <input type="number" name="dias_cambio_password" value="<?php echo $data['usuario']->dias_cambio_password; ?>" min="1" max="365">
+                    </div>
+                </div>
+
+                <div class="input-group" style="align-self: end; padding-bottom: 0.6rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="alerta_cambio_password" value="1" <?php echo $data['usuario']->alerta_cambio_password ? 'checked' : ''; ?>> Activar alerta de cambio
+                    </label>
+                </div>
+
+                <?php if($_SESSION['usuario_rol'] == 'superadmin'): ?>
+                <div class="input-group">
+                    <label>Fecha Último Cambio Contraseña</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-calendar-check"></i>
+                        <input type="datetime-local" name="ultimo_cambio_password" value="<?php echo date('Y-m-d\TH:i', strtotime($data['usuario']->ultimo_cambio_password)); ?>">
+                    </div>
+                    <small class="text-muted">Solo visible para Superadmin</small>
+                </div>
+                <?php endif; ?>
+
                 <div class="section-title" style="margin-top: 0.5rem;"><i class="fas fa-camera"></i> Enrolamiento Facial</div>
                 
                 <div class="input-group" style="grid-column: span 3; text-align: center;">

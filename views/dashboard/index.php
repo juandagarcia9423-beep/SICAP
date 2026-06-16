@@ -1,6 +1,29 @@
-<?php require_once '../views/layouts/header.php'; ?>
+<?php require_once APPROOT . '/views/layouts/header.php'; ?>
+
+<!-- Lógica de Alerta de Cambio de Contraseña -->
+<?php if($data['alerta_password']): ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+            title: '¡Seguridad de tu Cuenta!',
+            text: 'Han pasado más de <?php echo $data['dias_configurados']; ?> días desde tu último cambio de contraseña. Por seguridad, te recomendamos actualizarla.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#1e3a8a',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: '<i class="fas fa-key"></i> Ir a mi Perfil',
+            cancelButtonText: 'Más tarde'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '<?php echo URLROOT; ?>/perfil';
+            }
+        });
+    });
+</script>
+<?php endif; ?>
 
 <div class="stats-grid">
+
     <?php if (app\Helpers\SesionHelper::tienePermiso('bancohoras', 'ver_propio')): ?>
         <div class="card" style="border-left: 5px solid <?php echo $data['saldo'] >= 0 ? '#15803d' : '#991b1b'; ?>;">
             <i class="fas fa-university card-icon"></i>

@@ -14,6 +14,8 @@
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary-color: #1e3a8a; /* Azul Oscuro Sólido */
@@ -72,11 +74,27 @@
             width: 80px;
             height: 80px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            perspective: 1000px; /* Añadido para efecto 3D */
         }
         .logo-container img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            animation: rotateHorizontal3D 6s infinite ease-in-out;
+            transform-style: preserve-3d;
+        }
+        @keyframes rotateHorizontal3D {
+            0%, 20% { transform: rotateY(0deg); }
+            80%, 100% { transform: rotateY(360deg); }
+        }
+        .sidebar-user {
+            color: #3b82f6; /* Azul brillante similar al de usuarios, legible en fondo oscuro */
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
         }
         .sidebar-header { font-size: 1.5rem; font-weight: 600; margin: 0; }
         .sidebar-menu { flex: 1; padding: 1rem 0; display: flex; flex-direction: column; }
@@ -255,12 +273,13 @@
                 <img src="<?php echo URLROOT; ?>/img/gyp.png" alt="Logo GyP">
             </div>
             <h1 class="sidebar-header">SICAP</h1>
-            <div style="color: white; font-size: 0.9rem; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div class="sidebar-user">
                 <i class="fas fa-user-circle"></i> <?php echo $_SESSION['usuario_nombre']; ?>
             </div>
         </div>
         <div class="sidebar-menu">
             <a href="<?php echo URLROOT; ?>/dashboard" class="menu-item"><i class="fas fa-home"></i> <span>Dashboard</span></a>
+            <a href="<?php echo URLROOT; ?>/perfil" class="menu-item"><i class="fas fa-user-circle"></i> <span>Mi Perfil</span></a>
             
             <button class="menu-item dropdown-btn">
                 <i class="fas fa-cubes"></i> <span>Módulos</span>

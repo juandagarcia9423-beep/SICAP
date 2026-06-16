@@ -252,4 +252,44 @@ class Permiso {
 
         return $this->db->execute();
     }
+
+    public function obtenerSolicitudesParaInforme($filtros = []) {
+        $sql = "SELECT s.*, m.nombre as motivo_nombre, u.nombre as empleado_nombre, u.cedula, u.area, a.nombre as autorizador_nombre 
+                FROM solicitudes_permiso s 
+                JOIN motivos_permiso m ON s.motivo_id = m.id 
+                JOIN usuarios u ON s.usuario_id = u.id 
+                LEFT JOIN usuarios a ON s.autorizado_por = a.id
+                WHERE 1=1";
+        
+        $params = [];
+
+        if (!empty($filtros['usuario_id'])) {
+            $sql .= " AND s.usuario_id = :usuario_id";
+            $params[':usuario_id'] = $filtros['usuario_id'];
+        }
+
+        if (!empty($filtros['fecha_inicio'])) {
+            $sql .= " AND s.fecha_permiso >= :fecha_inicio";
+            $params[':fecha_inicio'] = $filtros['fecha_inicio'];
+        }
+
+        if (!empty($filtros['fecha_fin'])) {
+            $sql .= " AND s.fecha_permiso <= :fecha_fin";
+            $params[':fecha_fin'] = $filtros['fecha_fin'];
+        }
+
+        if (!empty($filtros['estado'])) {
+            $sql .= " AND s.estado = :estado";
+            $params[':estado'] = $filtros['estado'];
+        }
+
+        $sql .= " ORDER BY s.fecha_permiso DESC, s.hora_permiso DESC";
+
+        $this->db->query($sql);
+        foreach ($params as $key => $val) {
+            $this->db->bind($key, $val);
+        }
+
+        return $this->db->resultSet();
+    }
 }

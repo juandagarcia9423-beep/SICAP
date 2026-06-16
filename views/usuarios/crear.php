@@ -212,6 +212,22 @@
                     </div>
                 </div>
 
+                <div class="section-title" style="margin-top: 0.5rem;"><i class="fas fa-shield-alt"></i> Seguridad y Contraseña</div>
+
+                <div class="input-group">
+                    <label>Frecuencia de Cambio (Días)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-history"></i>
+                        <input type="number" name="dias_cambio_password" value="90" min="1" max="365">
+                    </div>
+                </div>
+
+                <div class="input-group" style="align-self: end; padding-bottom: 0.6rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="alerta_cambio_password" value="1" checked> Activar alerta de cambio
+                    </label>
+                </div>
+
                 <div class="section-title" style="margin-top: 0.5rem;"><i class="fas fa-camera"></i> Enrolamiento Facial</div>
                 
                 <div class="input-group" style="grid-column: span 3; text-align: center;">

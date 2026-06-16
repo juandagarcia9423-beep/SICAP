@@ -49,6 +49,8 @@ class UsuariosController extends Controller {
                 'permite_qr' => isset($_POST['permite_qr']) ? 1 : 0,
                 'pin_secreto' => trim($_POST['pin_secreto']),
                 'foto_facial' => $_POST['foto_facial'] ?? null,
+                'dias_cambio_password' => (int)($_POST['dias_cambio_password'] ?? 90),
+                'alerta_cambio_password' => isset($_POST['alerta_cambio_password']) ? 1 : 0,
                 'error' => ''
             ];
 
@@ -99,6 +101,9 @@ class UsuariosController extends Controller {
                 'permite_qr' => isset($_POST['permite_qr']) ? 1 : 0,
                 'pin_secreto' => trim($_POST['pin_secreto']),
                 'foto_facial' => $_POST['foto_facial'] ?? null,
+                'dias_cambio_password' => (int)($_POST['dias_cambio_password'] ?? 90),
+                'alerta_cambio_password' => isset($_POST['alerta_cambio_password']) ? 1 : 0,
+                'ultimo_cambio_password' => ($_SESSION['usuario_rol'] == 'superadmin' && !empty($_POST['ultimo_cambio_password'])) ? $_POST['ultimo_cambio_password'] : null,
                 'password_hash' => !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : '',
                 'error' => ''
             ];

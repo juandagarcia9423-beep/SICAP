@@ -88,4 +88,44 @@ class Asistencia {
         $this->db->bind(':id', $id);
         return $this->db->execute();
     }
+
+    public function procesarEstadosMarcaciones(&$marcaciones) {
+        foreach ($marcaciones as &$m) {
+            $raw_timestamp = $m->registrado_en; 
+            $parts = explode(' ', $raw_timestamp);
+            $fecha_str = $parts[0];
+            $hora_str = $parts[1];
+
+            $dia_semana = (int)date('N', strtotime($fecha_str));
+            $horario = $this->obtenerTurnoParaUsuario($m->usuario_id, $dia_semana);
+            
+            // Verificar permisos aprobados para hoy
+            $this->db->query("SELECT COUNT(*) FROM solicitudes_permiso 
+                        WHERE usuario_id = :usuario_id AND estado = 'aprobada' AND DATE(fecha_permiso) = :fecha");
+            $this->db->bind(':usuario_id', $m->usuario_id);
+            $this->db->bind(':fecha', $fecha_str);
+            $tienePermiso = $this->db->fetchColumn() > 0;
+
+            $m->estado_marcacion = 'A Tiempo';
+
+            if ($horario) {
+                $hora_marcacion = strtotime($hora_str);
+                $hora_entrada = strtotime($horario->hora_entrada);
+                $hora_salida = strtotime($horario->hora_salida);
+                $tolerancia = 600; // 10 minutos
+
+                if ($m->tipo == 'entrada') {
+                    if ($hora_str > $horario->hora_entrada && !$tienePermiso) {
+                        $m->estado_marcacion = 'Tarde';
+                    }
+                } elseif ($m->tipo == 'salida') {
+                    if ($hora_str < $horario->hora_salida && !$tienePermiso) {
+                        $m->estado_marcacion = 'Antes de Tiempo';
+                    } elseif ($hora_marcacion > ($hora_salida + $tolerancia) && !$tienePermiso) {
+                        $m->estado_marcacion = 'Tardanza en Salir';
+                    }
+                }
+            }
+        }
+    }
 }
